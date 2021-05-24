@@ -1,0 +1,42 @@
+version: "3.7"
+
+networks:
+  auth-network:
+    driver: bridge
+
+services:
+  auth-server:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: auth-server
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: password
+      DB_VENDOR: postgres
+      DB_ADDR: auth-db-server
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_SCHEMA: public
+    ports:
+      - 8080:8080
+    depends_on:
+      - auth-db-server
+    networks:
+      - auth-network
+    volumes:
+      - ./keycloak/tmp:/tmp
+
+  auth-db-server:
+    build: ./auth-db/postgresql
+    container_name: auth-db-server
+    restart: always
+    tty: true
+    ports:
+      - 54320:5432
+    volumes:
+      - ./auth-db/dbdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    networks:
+      - auth-network
