@@ -1,10 +1,22 @@
 version: "3.7"
 
 networks:
-  auth-network:
+  common-network:
     driver: bridge
 
 services:
+  api:
+    # Named containers must be used to stay synchronized with the database host
+    # address.
+    container_name: api
+    build: ./api
+    ports:
+      - 8000:8000
+    networks:
+      - common-network
+    environment:
+      PORT: 8000
+
   auth-server:
     image: quay.io/keycloak/keycloak:latest
     container_name: auth-server
@@ -12,22 +24,22 @@ services:
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: password
       DB_VENDOR: postgres
-      DB_ADDR: auth-db-server
+      DB_ADDR: auth-db
       DB_USER: postgres
       DB_PASSWORD: password
       DB_SCHEMA: public
     ports:
       - 8080:8080
     depends_on:
-      - auth-db-server
+      - auth-db
     networks:
-      - auth-network
+      - common-network 
     volumes:
-      - ./keycloak/tmp:/tmp
+      - ./auth-server/tmp:/tmp
 
-  auth-db-server:
+  auth-db:
     build: ./auth-db/postgresql
-    container_name: auth-db-server
+    container_name: auth-db
     restart: always
     tty: true
     ports:
@@ -39,4 +51,4 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     networks:
-      - auth-network
+      - common-network 
