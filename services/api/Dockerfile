@@ -12,7 +12,3 @@ COPY ./app/pyproject.toml ./app/poetry.lock* /app/
 RUN poetry install --no-root --no-dev
 
 COPY ./app /app
-
-EXPOSE 8000
-
-CMD uvicorn --host=0.0.0.0 main:app
